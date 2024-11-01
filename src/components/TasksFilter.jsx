@@ -1,5 +1,5 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import React from 'react'
+import PropTypes from 'prop-types'
 
 class TasksFilter extends React.Component {
   render() {
@@ -9,7 +9,7 @@ class TasksFilter extends React.Component {
           <button
             className={!this.props.filter ? 'selected' : ''}
             onClick={() => {
-              this.props.changeFilter('');
+              this.props.changeFilter('')
             }}
           >
             All
@@ -19,7 +19,7 @@ class TasksFilter extends React.Component {
           <button
             className={this.props.filter == 'active' ? 'selected' : ''}
             onClick={() => {
-              this.props.changeFilter('active');
+              this.props.changeFilter('active')
             }}
           >
             Active
@@ -29,22 +29,22 @@ class TasksFilter extends React.Component {
           <button
             className={this.props.filter == 'completed' ? 'selected' : ''}
             onClick={() => {
-              this.props.changeFilter('completed');
+              this.props.changeFilter('completed')
             }}
           >
             Completed
           </button>
         </li>
       </ul>
-    );
+    )
   }
 }
 
 TasksFilter.propTypes = {
   changeFilter: PropTypes.func.isRequired,
   filter: PropTypes.string,
-};
+}
 TasksFilter.defaultProps = {
   filter: '',
-};
-export default TasksFilter;
+}
+export default TasksFilter

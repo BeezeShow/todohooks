@@ -1,6 +1,7 @@
-import React from 'react';
-import TasksFilter from './TasksFilter';
-import PropTypes from 'prop-types';
+import React from 'react'
+import PropTypes from 'prop-types'
+
+import TasksFilter from './TasksFilter'
 
 class Footer extends React.Component {
   render() {
@@ -12,7 +13,7 @@ class Footer extends React.Component {
           Clear completed
         </button>
       </footer>
-    );
+    )
   }
 }
 
@@ -21,11 +22,11 @@ Footer.propTypes = {
   changeFilter: PropTypes.func.isRequired,
   filter: PropTypes.string.isRequired,
   clearCompleted: PropTypes.func.isRequired,
-};
+}
 Footer.defaultProps = {
   counter: 0,
   changeFilter: () => {},
   filter: '',
   clearCompleted: () => {},
-};
-export default Footer;
+}
+export default Footer

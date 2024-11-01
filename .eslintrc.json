@@ -1,4 +1,6 @@
 {
+  "parser": "@babel/eslint-parser",
+
   "env": {
     "browser": true,
     "es2021": true
@@ -15,8 +17,10 @@
     "ecmaFeatures": {
       "jsx": true
     },
-    "ecmaVersion": 12,
-    "sourceType": "module"
+    "ecmaVersion": 2020,
+    "sourceType": "module",
+    "requireConfigFile": false,
+    "jsx": true
   },
   "plugins": ["react", "prettier", "import"],
   "rules": {

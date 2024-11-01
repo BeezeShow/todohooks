@@ -1,6 +1,7 @@
-import React from 'react';
-import { Task } from './Task';
-import PropTypes from 'prop-types';
+import React from 'react'
+import PropTypes from 'prop-types'
+
+import { Task } from './Task'
 
 class TaskList extends React.Component {
   render() {
@@ -9,29 +10,29 @@ class TaskList extends React.Component {
         {this.props.tasks.map((task, index) => {
           const match = () => {
             if (!this.props.filter) {
-              return true;
+              return true
             }
             if (this.props.filter == 'completed') {
-              return task.isDone;
+              return task.isDone
             }
             if (this.props.filter == 'active') {
-              return !task.isDone;
+              return !task.isDone
             }
-          };
+          }
           if (match()) {
             return (
               <Task
                 {...task}
-                key={`task-${task.date.toDateString()}`}
+                key={`task-${task.date.getTime()}`}
                 removeTask={this.props.removeTask}
                 index={index}
                 toggleDone={this.props.toggleDone}
               />
-            );
+            )
           }
         })}
       </ul>
-    );
+    )
   }
 }
 
@@ -43,15 +44,15 @@ TaskList.propTypes = {
       isDone: PropTypes.bool.isRequired,
     })
   ).isRequired,
-  filter: PropTypes.oneOf(['all', 'completed', 'active']),
+  filter: PropTypes.oneOf(['completed', 'active', '']),
   removeTask: PropTypes.func.isRequired,
   toggleDone: PropTypes.func.isRequired,
-};
+}
 
 TaskList.defaultProps = {
   filter: 'all',
   tasks: [],
   removeTask: () => {},
   toggleDone: () => {},
-};
-export default TaskList;
+}
+export default TaskList
