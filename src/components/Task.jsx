@@ -1,118 +1,120 @@
-import React from 'react'
-import { formatDistanceToNow } from 'date-fns'
+import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
+import { formatDistanceToNow } from 'date-fns'
 
-export class Task extends React.Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      formattedDate: formatDistanceToNow(props.date, { includeSeconds: true }),
-      desc: props.description,
-      isEditing: false,
-      time: 0,
-      isRunning: false,
+export const Task = ({
+  index,
+  isDone,
+  description,
+  date,
+  toggleDone,
+  removeTask,
+  timers,
+  startTimer,
+  stopTimer,
+  setRemainingTime,
+  id,
+}) => {
+  const [time, setTime] = useState(timers[id]?.remainingTime || 3600) // Таймер начинается с 3600 секунд (1 час)
+  const [isRunning, setIsRunning] = useState(timers[id]?.isRunning || false) // Статус таймера
+  const [formattedDate, setFormattedDate] = useState(formatDistanceToNow(date, { includeSeconds: true }))
+  const [desc, setDesc] = useState(description)
+  const [isEditing, setIsEditing] = useState(false)
+
+  useEffect(() => {
+    return () => {
+      // Сохраняем состояние времени в родительском компоненте
+      setRemainingTime(id, time)
     }
-    this.timerID = null
-  }
+  }, [time, id, setRemainingTime])
 
-  formatTime = (seconds) => {
-    const minutes = Math.floor(seconds / 60)
-    const secs = seconds % 60
+  // Обновляем дату задачи каждую секунду
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setFormattedDate(formatDistanceToNow(date, { includeSeconds: true }))
+    }, 1000)
+    return () => clearInterval(intervalId)
+  }, [date])
 
-    const formattedMinutes = String(minutes).padStart(2, '0')
-    const formattedSeconds = String(secs).padStart(2, '0')
-
-    return `${formattedMinutes}:${formattedSeconds}`
-  }
-
-  startTimer = () => {
-    if (!this.state.isRunning) {
-      this.setState({ isRunning: true })
-      this.timerID = setInterval(() => {
-        this.setState((prevState) => ({
-          time: prevState.time + 1,
-        }))
+  // Таймер работает независимо от фильтра
+  useEffect(() => {
+    let timerID
+    if (isRunning && time > 0) {
+      timerID = setInterval(() => {
+        setTime((prevTime) => Math.max(prevTime - 1, 0)) // Таймер не может быть отрицательным
       }, 1000)
     }
-  }
-  componentWillUnmount() {
-    clearInterval(this.timerID)
-    clearInterval(this.interval)
-  }
-  stopTimer = () => {
-    if (this.state.isRunning) {
-      clearInterval(this.timerID)
-      this.setState({ isRunning: false })
+    return () => clearInterval(timerID)
+  }, [isRunning, time])
+
+  const startTimerHandler = () => {
+    if (!isRunning) {
+      setIsRunning(true)
+      startTimer(id)
     }
   }
-  updateDate = () => {
-    this.setState({
-      formattedDate: formatDistanceToNow(this.props.date, {
-        includeSeconds: true,
-      }),
-    })
+
+  const stopTimerHandler = () => {
+    if (isRunning) {
+      setIsRunning(false)
+      stopTimer(id)
+    }
   }
 
-  componentDidMount() {
-    this.interval = setInterval(this.updateDate, 1000)
+  const toggleEdit = () => {
+    setIsEditing((prev) => !prev) // Переключаем режим редактирования
   }
 
-  toggleDone = () => {
-    this.props.toggleDone(this.props.index)
-
-    this.stopTimer()
+  const updateDescription = (e) => {
+    setDesc(e.target.value) // Обновляем описание задачи
+    setIsEditing(false) // Завершаем редактирование
   }
 
-  toggleEdit = () => {
-    this.setState({
-      isEditing: !this.state.isEditing,
-    })
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
   }
 
-  updateDiscription = (e) => {
-    this.setState({ desc: e.target.value })
-    this.toggleEdit()
-  }
-  render() {
-    return (
-      <li className={this.props.isDone ? 'completed' : this.state.isEditing ? 'editing' : ''}>
-        <div className="view">
-          <input className="toggle" type="checkbox" checked={this.props.isDone} onChange={this.toggleDone} />
-          <label>
-            <span className="title">{this.state.desc}</span>
-            <span className="description">
-              <button className="icon icon-play" onClick={this.startTimer}></button>
-              <button className="icon icon-pause" onClick={this.stopTimer}></button>
-              {this.formatTime(this.state.time)}
-            </span>
-            <span className="created">{this.state.formattedDate}</span>
-          </label>
-          <button className="icon icon-edit" onClick={this.toggleEdit}></button>
-          <button
-            className="icon icon-destroy"
-            onClick={() => {
-              this.props.removeTask(this.props.index)
-            }}
-          ></button>
-        </div>
-        {this.state.isEditing && (
-          <input
-            type="text"
-            className="edit"
-            value={this.state.desc}
-            onChange={(e) => {
-              this.setState({ desc: e.target.value })
-            }}
-            onKeyDown={(e) => {
-              if (e.keyCode === 13) {
-                this.updateDiscription(e)
-              }
-            }}
-          />
-        )}
-      </li>
-    )
-  }
+  return (
+    <li className={isDone ? 'completed' : isEditing ? 'editing' : ''}>
+      <div className="view">
+        <input
+          className="toggle"
+          type="checkbox"
+          checked={isDone}
+          onChange={() => {
+            toggleDone(index) // Переключаем состояние задачи
+            if (!isDone) stopTimerHandler() // Останавливаем таймер, если задача помечена как завершенная
+          }}
+        />
+        <label>
+          <span className="title">{desc}</span>
+          <span className="description">
+            <button className="icon icon-play" onClick={startTimerHandler}></button>
+            <button className="icon icon-pause" onClick={stopTimerHandler}></button>
+            {formatTime(time)}
+          </span>
+          <span className="created">{formattedDate}</span>
+        </label>
+        <button className="icon icon-edit" onClick={toggleEdit}></button>
+        <button className="icon icon-destroy" onClick={() => removeTask(index)}></button>
+      </div>
+      {isEditing && (
+        <input
+          type="text"
+          className="edit"
+          value={desc}
+          onChange={(e) => setDesc(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.keyCode === 13) {
+              updateDescription(e) // Завершаем редактирование при нажатии Enter
+            }
+          }}
+        />
+      )}
+    </li>
+  )
 }
 
 Task.propTypes = {
@@ -122,13 +124,9 @@ Task.propTypes = {
   date: PropTypes.instanceOf(Date).isRequired,
   toggleDone: PropTypes.func.isRequired,
   removeTask: PropTypes.func.isRequired,
-}
-
-Task.defaultProps = {
-  isDone: false,
-  description: '',
-  date: new Date(),
-  toggleDone: () => {},
-  removeTask: () => {},
-  index: -1,
+  timers: PropTypes.object.isRequired,
+  startTimer: PropTypes.func.isRequired,
+  stopTimer: PropTypes.func.isRequired,
+  setRemainingTime: PropTypes.func.isRequired,
+  id: PropTypes.string.isRequired,
 }
